@@ -16,18 +16,28 @@ GPU_ID=$1
 NET=$2
 NET_lc=${NET,,}
 DATASET=$3
+EXT=$4
 
 array=( $@ )
 len=${#array[@]}
-EXTRA_ARGS=${array[@]:3:$len}
+EXTRA_ARGS=${array[@]:4:$len}
 EXTRA_ARGS_SLUG=${EXTRA_ARGS// /_}
 
 case $DATASET in
+  traffic_sign)
+    TRAIN_IMDB="traffic_sign_train"
+    TEST_IMDB="traffic_sign_val"
+    PT_DIR="traffic_sign"
+    ITERS=50000
+    ;;
   pascal_voc)
-    TRAIN_IMDB="voc_2007_trainval"
-    TEST_IMDB="voc_2007_test"
+    #TRAIN_IMDB="voc_2007_trainval"
+    TRAIN_IMDB="VOC2007_trainval"
+    #TEST_IMDB="voc_2007_test"
+    TEST_IMDB="VOC2007_test"
     PT_DIR="pascal_voc"
-    ITERS=70000
+    #ITERS=70000
+    ITERS=1000
     ;;
   coco)
     # This is a very long and slow training schedule
@@ -54,6 +64,7 @@ time ./tools/train_net.py --gpu ${GPU_ID} \
   --imdb ${TRAIN_IMDB} \
   --iters ${ITERS} \
   --cfg experiments/cfgs/faster_rcnn_end2end.yml \
+  --ext ${EXT} \
   ${EXTRA_ARGS}
 
 set +x
