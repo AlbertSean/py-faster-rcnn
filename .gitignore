@@ -3,3 +3,9 @@
 lib/build
 lib/pycocotools/_mask.c
 lib/pycocotools/_mask.so
+data/VOCdevkit2007/results/
+data/VOCdevkit2007/VOC2007/
+data/VOCdevkit2007/annotations_cache/
+data/VOCdevkit2007/local/
+data/faster_rcnn_models/
+data/imagenet_models/
