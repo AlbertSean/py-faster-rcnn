@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# coding:utf-8
 # --------------------------------------------------------
 # Fast R-CNN
 # Copyright (c) 2015 Microsoft
@@ -121,18 +123,19 @@ class universal(imdb):
 
         This function loads/saves from/to a cache file to speed up future calls.
         """
-        cache_file = os.path.join(self.cache_path, self.name + '_gt_roidb.pkl')
-        if os.path.exists(cache_file):
-            with open(cache_file, 'rb') as fid:
-                roidb = cPickle.load(fid)
-            print '{} gt roidb loaded from {}'.format(self.name, cache_file)
-            return roidb
+        # 缓存并不是个好的选择。 很容易让你陷入混乱：明明正确的配置，为何跑不出正确结果？所以，扔掉缓存吧
+        #cache_file = os.path.join(self.cache_path, self.name + '_gt_roidb.pkl')
+        #if os.path.exists(cache_file):
+        #    with open(cache_file, 'rb') as fid:
+        #        roidb = cPickle.load(fid)
+        #    print '{} gt roidb loaded from {}'.format(self.name, cache_file)
+        #    return roidb
 
         gt_roidb = [self._load_pascal_annotation(index)
                     for index in self.image_index]
-        with open(cache_file, 'wb') as fid:
-            cPickle.dump(gt_roidb, fid, cPickle.HIGHEST_PROTOCOL)
-        print 'wrote gt roidb to {}'.format(cache_file)
+        #with open(cache_file, 'wb') as fid:
+        #    cPickle.dump(gt_roidb, fid, cPickle.HIGHEST_PROTOCOL)
+        #print 'wrote gt roidb to {}'.format(cache_file)
 
         return gt_roidb
 
@@ -143,14 +146,14 @@ class universal(imdb):
 
         This function loads/saves from/to a cache file to speed up future calls.
         """
-        cache_file = os.path.join(self.cache_path,
-                                  self.name + '_selective_search_roidb.pkl')
+        #cache_file = os.path.join(self.cache_path,
+        #                          self.name + '_selective_search_roidb.pkl')
 
-        if os.path.exists(cache_file):
-            with open(cache_file, 'rb') as fid:
-                roidb = cPickle.load(fid)
-            print '{} ss roidb loaded from {}'.format(self.name, cache_file)
-            return roidb
+        #if os.path.exists(cache_file):
+        #    with open(cache_file, 'rb') as fid:
+        #        roidb = cPickle.load(fid)
+        #    print '{} ss roidb loaded from {}'.format(self.name, cache_file)
+        #    return roidb
 
         if int(self._year) == 2007 or self._image_set != 'test':
             gt_roidb = self.gt_roidb()
@@ -158,9 +161,9 @@ class universal(imdb):
             roidb = imdb.merge_roidbs(gt_roidb, ss_roidb)
         else:
             roidb = self._load_selective_search_roidb(None)
-        with open(cache_file, 'wb') as fid:
-            cPickle.dump(roidb, fid, cPickle.HIGHEST_PROTOCOL)
-        print 'wrote ss roidb to {}'.format(cache_file)
+        #with open(cache_file, 'wb') as fid:
+        #    cPickle.dump(roidb, fid, cPickle.HIGHEST_PROTOCOL)
+        #print 'wrote ss roidb to {}'.format(cache_file)
 
         return roidb
 
@@ -304,7 +307,7 @@ class universal(imdb):
             'Main',
             self._image_set + '.txt')
         #cachedir = os.path.join(self._devkit_path, 'annotations_cache')
-        cachedir = os.path.join(self._data_path, 'annotations_cache')
+        #cachedir = os.path.join(self._data_path, 'annotations_cache')
         aps = []
         # The PASCAL VOC metric changed in 2010
         # use_07_metric = True if int(self._year) < 2010 else False
@@ -317,7 +320,7 @@ class universal(imdb):
                 continue
             filename = self._get_voc_results_file_template().format(cls)
             rec, prec, ap = voc_eval(
-                filename, annopath, imagesetfile, cls, cachedir, ovthresh=0.5,
+                filename, annopath, imagesetfile, cls, ovthresh=0.5,
                 use_07_metric=use_07_metric)
             aps += [ap]
             print('AP for {} = {:.4f}'.format(cls, ap))
