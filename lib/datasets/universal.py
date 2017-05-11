@@ -271,6 +271,10 @@ class universal(imdb):
                 continue
             print 'Writing {} VOC results file'.format(cls)
             filename = self._get_voc_results_file_template().format(cls)
+            pos = filename.rfind('/')
+            result_dir = filename[:pos]
+            if not os.path.exists(result_dir):
+                os.makedirs(result_dir)
             with open(filename, 'wt') as f:
                 for im_ind, index in enumerate(self.image_index):
                     dets = all_boxes[cls_ind][im_ind]

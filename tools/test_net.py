@@ -17,6 +17,7 @@ import caffe
 import argparse
 import pprint
 import time, os, sys
+from datasets.universal import universal
 
 def parse_args():
     """
@@ -49,6 +50,8 @@ def parse_args():
     parser.add_argument('--num_dets', dest='max_per_image',
                         help='max number of detections per image',
                         default=100, type=int)
+    parser.add_argument('--ext', dest='ext',
+                        default='.jpg', type=str)
 
     if len(sys.argv) == 1:
         parser.print_help()
@@ -82,7 +85,12 @@ if __name__ == '__main__':
     net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
     net.name = os.path.splitext(os.path.basename(args.caffemodel))[0]
 
-    imdb = get_imdb(args.imdb_name)
+    # imdb = get_imdb(args.imdb_name)
+    imdb_name = args.imdb_name
+    pos = imdb_name.rfind("_")
+    db_name = imdb_name[:pos]
+    split = imdb_name[pos+1:]
+    imdb = universal(db_name=db_name, split=split, ext=args.ext)
     imdb.competition_mode(args.comp_mode)
     if not cfg.TEST.HAS_RPN:
         imdb.set_proposal_method(cfg.TEST.PROPOSAL_METHOD)

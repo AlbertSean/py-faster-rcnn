@@ -196,7 +196,7 @@ __C.DATA_DIR = osp.abspath(osp.join(__C.ROOT_DIR, 'data'))
 __C.MODELS_DIR = osp.abspath(osp.join(__C.ROOT_DIR, 'models', 'pascal_voc'))
 
 # Pascal Voc devkit directory
-__C.DEVKIT_DIR = '/home/chris/data/VOCdevkit'
+__C.DEVKIT_DIR = os.path.expanduser('~/data/VOCdevkit')
 
 # Name (or path to) the matlab executable
 __C.MATLAB = 'matlab'
