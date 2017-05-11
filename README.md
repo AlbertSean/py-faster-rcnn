@@ -1,3 +1,69 @@
+### 训练自己的数据集
+
+#### 下载本项目
+
+下载本项目。并自行把各种预训练的.v2.caffemodel下载下来。参考原版py-faster-rcnn的说明。
+
+#### 先准备数据集
+
+比如放在`/home/chris/data/traffic_sign`目录：
+```
+├── Annotations
+├── classes.txt
+├── ImageSets
+├── JPEGImages
+└── 数据集说明.txt
+```
+其中classex.txt的每行是一个待检测的目标类别，不需要引号
+
+Annotations, ImageSets, JPEGImages这3个目录，和VOC 2007数据集格式一样即可
+
+需要确保`ImageSets/Main/xxx.txt`的存在: xxx通常是`train, val, trainval, test`等。这个xxx的取值要和后续训练脚本中指定的`TRAIN_IMDB`和`TEST_IMDB`取值的最后一段保持一致。
+
+#### 修改配置文件
+
+1. 数据集所在父目录
+
+`experiments/cfg/faster_rcnn_end2end.yml`，修改`DATA_DIR`为你的数据集目录的父目录。
+
+
+2. VOCdevkit目录
+
+默认假定了VOCdevkit放在了/home/chris/data/VOCdevkit，可以在`experiments/cfg/faster_rcnn_end2end.sh`添加`VOCdevkit: /path/to/your/VOCdevkit`
+
+或者`lib/fast_rcnn/config.py`中修改`__C.DEVKIT_DIR`的值
+
+3. 训练脚本增加数据集
+
+在`py-faster-rcnn/experiments/scripts/faster_rcnn_end2end.sh`等脚本中，添加数据集的case选项，如：
+```bash
+case $DATASET in
+  traffic_sign)
+    TRAIN_IMDB="你的数据集名_train"
+    TEST_IMDB="你的数据集名_val"
+    PT_DIR="你的数据集名"
+    ITERS=1000
+    ;;
+```
+`train`和`val`是用来取数据集子集的，对应着从`你的数据集名/ImageSets/Main/{train.txt,val.txt}`中取出。
+
+4. 修改神经网络配置文件（各种prototxt)
+
+根据上一步设定的`PT_DIR`准备。详细路径如：
+
+`py-faster-rcnn/models/${PT_DIR}/${NET}/faster_rcnn_end2end/{solver.prototxt,train.prototxt,test.prototxt}`
+
+其中`NET`是上一步的脚本的输入参数所设定,比如VGG16
+
+#### 开始训练
+
+举个栗子：
+```
+./experiments/scripts/faster_rcnn_end2end.sh 0 VGG_CNN_M_1024 traffic_sign --ext .png
+```
+最后的两个参数用来指定训练图片后缀。不指定这两个参数的话默认是jpg格式
+
+
 ### Disclaimer
 
 The official Faster R-CNN code (written in MATLAB) is available [here](https://github.com/ShaoqingRen/faster_rcnn).
