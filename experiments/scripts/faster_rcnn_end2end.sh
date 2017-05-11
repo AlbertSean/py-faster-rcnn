@@ -28,6 +28,7 @@ case $DATASET in
     TEST_IMDB="traffic_sign_val"
     PT_DIR="traffic_sign"
     ITERS=1000
+    ;;
   pascal_voc)
     #TRAIN_IMDB="voc_2007_trainval"
     TRAIN_IMDB="VOC2007_trainval"
@@ -65,7 +66,8 @@ echo Logging output to "$LOG"
 
 set +x
 #NET_FINAL=`grep -B 1 "done solving" ${LOG} | grep "Wrote snapshot" | awk '{print $4}'`
-NET_FINAL=/home/zjk/zhangzhuo/py-faster-rcnn/vgg16_faster_rcnn_iter_1000.caffemodel
+#NET_FINAL=/home/zjk/zhangzhuo/py-faster-rcnn/vgg16_faster_rcnn_iter_1000.caffemodel
+NET_FINAL=output/faster_rcnn_end2end/traffic_sign_train/vgg_cnn_m_1024_faster_rcnn_iter_1000.caffemodel
 set -x
 
 time ./tools/test_net.py --gpu ${GPU_ID} \

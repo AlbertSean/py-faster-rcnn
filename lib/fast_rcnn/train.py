@@ -14,6 +14,7 @@ from utils.timer import Timer
 import numpy as np
 import os
 
+import google.protobuf.text_format
 from caffe.proto import caffe_pb2
 import google.protobuf as pb2
 

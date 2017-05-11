@@ -289,19 +289,22 @@ class universal(imdb):
 
     def _do_python_eval(self, output_dir = 'output'):
         annopath = os.path.join(
-            self._devkit_path,
+            self._data_path,
+            #self._devkit_path,
             #'VOC' + self._year,
-            self._db_name,
+            #self._db_name,
             'Annotations',
             '{:s}.xml')
         imagesetfile = os.path.join(
-            self._devkit_path,
+            #self._devkit_path,
+            self._data_path,
             #'VOC' + self._year,
-            self._db_name,
+            #self._db_name,
             'ImageSets',
             'Main',
             self._image_set + '.txt')
-        cachedir = os.path.join(self._devkit_path, 'annotations_cache')
+        #cachedir = os.path.join(self._devkit_path, 'annotations_cache')
+        cachedir = os.path.join(self._data_path, 'annotations_cache')
         aps = []
         # The PASCAL VOC metric changed in 2010
         # use_07_metric = True if int(self._year) < 2010 else False
