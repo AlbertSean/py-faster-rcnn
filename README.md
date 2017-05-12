@@ -47,7 +47,7 @@ case $DATASET in
 ```
 `train`和`val`是用来取数据集子集的，对应着从`你的数据集名/ImageSets/Main/{train.txt,val.txt}`中取出。
 
-4. 修改神经网络配置文件（各种prototxt)
+#### 修改神经网络配置文件（各种prototxt)
 
 根据上一步设定的`PT_DIR`准备。详细路径如：
 
@@ -55,13 +55,67 @@ case $DATASET in
 
 其中`NET`是上一步的脚本的输入参数所设定,比如VGG16
 
+很直接的一个做法是，从现有网络结构拷贝：
+```
+cp -R models/pascal_voc models/traffic_sign
+```
+
+**注意，一定记得修改solver.prototxt中的train.prototxt的路径！**
+```
+vim models/traffic_sign/VGG16/faster_rcnn_end2end/solver.prototxt
+
+#修改第一行的路径，把默认的pascal_voc换成你的路径，例如traffic_sign
+```
+
+**如有必要，修改网络类别数**
+
+在train.prototxt中：
+```
+input-data层的`num_classes`，为类别数+1 （1个背景类，下同）
+roi-data层的`num_classes`，为类别数+1
+cls_score层的`num_output`，为类别数+1
+bbox_pred层的`num_output`，为(类别数+1)*4， 4表示一个bbox的4个坐标值
+```
+
+在test.prototxt中
+
+**如有必要，修改anchor数**
+
+```
+rpn_cls_prob_reshape层的第二个`dim`: 2*anchor数量（2表示bg/fg，背景和前景做二分类,下同）
+rpn_cls_score层的`num_output`: 2*anchor数量
+```
+同时，python代码中也要修改这个anchor数。具体要自己看下。
+
 #### 开始训练
 
-举个栗子：
+通常训练会耗时很久。强烈建议开启tmux执行任务，这样可以_断开_“执行训练所使用的那个shell”，等过一段时间后再连接上并查看它。
+```
+sudo apt install tmux
+
+tmux new -s py-faster-rcnn-train  #建立tmux新会话，并指定其名字。
+
+...   #开启各种耗时的命令、任务脚本
+
+# ctrl+b是tmux各种组合键的前缀
+# ctrl+b d  关闭当前shell
+
+tmux a -t py-faster-rcnn-train  #重新连接指定的tmux会话
+
+tmux ls   #查看tmux会话列表
+```
+
+
+关键训练脚本：
 ```
 ./experiments/scripts/faster_rcnn_end2end.sh 0 VGG_CNN_M_1024 traffic_sign --ext .png
 ```
 最后的两个参数用来指定训练图片后缀。不指定这两个参数的话默认是jpg格式
+
+
+### 参考
+
+https://github.com/andrewliao11/py-faster-rcnn-imagenet
 
 
 ### Disclaimer

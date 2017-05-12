@@ -23,6 +23,12 @@ EXTRA_ARGS=${array[@]:3:$len}
 EXTRA_ARGS_SLUG=${EXTRA_ARGS// /_}
 
 case $DATASET in
+  GTSDB)
+    TRAIN_IMDB="GTSDB_train"
+    TEST_IMDB="GTSDB_test"
+    PT_DIR="GTSDB"
+    ITERS=50000
+    ;;
   traffic_sign)
     TRAIN_IMDB="traffic_sign_train"
     TEST_IMDB="traffic_sign_val"
@@ -56,18 +62,18 @@ LOG="experiments/logs/faster_rcnn_end2end_${NET}_${EXTRA_ARGS_SLUG}.txt.`date +'
 exec &> >(tee -a "$LOG")
 echo Logging output to "$LOG"
 
-#time ./tools/train_net.py --gpu ${GPU_ID} \
-#  --solver models/${PT_DIR}/${NET}/faster_rcnn_end2end/solver.prototxt \
-#  --weights data/imagenet_models/${NET}.v2.caffemodel \
-#  --imdb ${TRAIN_IMDB} \
-#  --iters ${ITERS} \
-#  --cfg experiments/cfgs/faster_rcnn_end2end.yml \
-#  ${EXTRA_ARGS}
+time ./tools/train_net.py --gpu ${GPU_ID} \
+  --solver models/${PT_DIR}/${NET}/faster_rcnn_end2end/solver.prototxt \
+  --weights data/imagenet_models/${NET}.v2.caffemodel \
+  --imdb ${TRAIN_IMDB} \
+  --iters ${ITERS} \
+  --cfg experiments/cfgs/faster_rcnn_end2end.yml \
+  ${EXTRA_ARGS}
 
 set +x
-#NET_FINAL=`grep -B 1 "done solving" ${LOG} | grep "Wrote snapshot" | awk '{print $4}'`
+NET_FINAL=`grep -B 1 "done solving" ${LOG} | grep "Wrote snapshot" | awk '{print $4}'`
 #NET_FINAL=/home/zjk/zhangzhuo/py-faster-rcnn/vgg16_faster_rcnn_iter_1000.caffemodel
-NET_FINAL=output/faster_rcnn_end2end/traffic_sign_train/vgg_cnn_m_1024_faster_rcnn_iter_1000.caffemodel
+#NET_FINAL=output/faster_rcnn_end2end/traffic_sign_train/vgg_cnn_m_1024_faster_rcnn_iter_1000.caffemodel
 set -x
 
 time ./tools/test_net.py --gpu ${GPU_ID} \
