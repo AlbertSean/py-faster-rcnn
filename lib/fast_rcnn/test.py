@@ -18,6 +18,7 @@ from fast_rcnn.nms_wrapper import nms
 import cPickle
 from utils.blob import im_list_to_blob
 import os
+from easydict import EasyDict as edict
 
 def _get_image_blob(im):
     """Converts an image into a network input.
@@ -183,9 +184,13 @@ def im_detect(net, im, boxes=None):
 
     return scores, pred_boxes
 
-def vis_detections(im, class_name, dets, thresh=0.3):
+def vis_detections_old(im, class_name, dets, thresh=0.3):
     """Visual debugging of detections."""
     import matplotlib.pyplot as plt
+    mng = plt.get_current_fig_manager()
+    #mng.full_screen_toggle()
+    # mng.window.state('zoomed')
+    mng.window.showMaximized()
     im = im[:, :, (2, 1, 0)]
     for i in xrange(np.minimum(10, dets.shape[0])):
         bbox = dets[i, :4]
@@ -201,6 +206,48 @@ def vis_detections(im, class_name, dets, thresh=0.3):
                 )
             plt.title('{}  {:.3f}'.format(class_name, score))
             plt.show()
+
+def vis_detections(im, class_name, dets, thresh=0.3):
+    """Visual debugging of detections."""
+    color = edict()
+    color.blue = (255,0,0)
+
+    im = im[:, :, (2, 1, 0)]
+
+    im = im.copy()
+    for i in xrange(np.minimum(10, dets.shape[0])):
+        bbox = dets[i, :4]
+        score = dets[i, -1]
+        if score > thresh:
+
+            cv2.rectangle(
+                    im,
+                    (bbox[0], bbox[1]),
+                    (bbox[2], bbox[3]),
+                    color.blue,
+                    2
+                )
+
+            title = '{}  {:.3f}'.format(class_name, score)
+            winname = title
+            cv2.namedWindow(winname)
+            cv2.moveWindow(winname, 100, 100)
+            cv2.imshow(winname, im)
+            k = cv2.waitKey(0)
+            if k == 27:
+                cv2.destroyAllWindows()
+            #plt.cla()
+            #plt.imshow(im)
+            #plt.gca().add_patch(
+            #    plt.Rectangle((bbox[0], bbox[1]),
+            #                  bbox[2] - bbox[0],
+            #                  bbox[3] - bbox[1], fill=False,
+            #                  edgecolor='g', linewidth=3)
+            #    )
+            #plt.title('{}  {:.3f}'.format(class_name, score))
+            #plt.show()
+
+
 
 def apply_nms(all_boxes, thresh):
     """Apply non-maximum suppression to all predicted boxes output by the
