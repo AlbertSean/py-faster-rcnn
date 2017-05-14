@@ -63,19 +63,19 @@ esac
 
 case $NET_lc in
     resnet50)
-    PRE_MODEL=data/pascal_voc_models/ResNet-50-model.caffemodel
+    PRE_MODEL=$HOME/data/pretrained_caffemodel/imagenet_models/ResNet-50-model.caffemodel
     NET_FULL='ResNet50_BN_SCALE_Merged'
     ;;
     resnet50_ohem)
-    PRE_MODEL=data/pascal_voc_models/ResNet-50-model.caffemodel
+    PRE_MODEL=$HOME/data/pretrained_caffemodel/imagenet_models/ResNet-50-model.caffemodel
     NET_FULL='ResNet50_BN_SCALE_Merged_OHEM'
     ;;
     resnet101)
-    PRE_MODEL=data/pascal_voc_models/ResNet101_BN_SCALE_Merged.caffemodel
+    PRE_MODEL=$HOME/data/pretrained_caffemodel/imagenet_models/ResNet101_BN_SCALE_Merged.caffemodel
     NET_FULL='ResNet101_BN_SCALE_Merged'
     ;;
   resnet101_ohem)
-    PRE_MODEL=data/pascal_voc_models/ResNet101_BN_SCALE_Merged.caffemodel
+    PRE_MODEL=$HOME/data/pretrained_caffemodel/imagenet_models/ResNet101_BN_SCALE_Merged.caffemodel
     NET_FULL='ResNet101_BN_SCALE_Merged_OHEM'
     ;;
    *)
@@ -92,19 +92,19 @@ echo Logging output to "$LOG"
 
 RESNET101=resnet101_faster_rcnn_bn_scale_merged_end2end_iter_70000.caffemodel
 
-#time ./tools/train_net.py --gpu ${GPU_ID} \
-#  --solver models/${PT_DIR}/${NET_FULL}/faster_rcnn_end2end/solver.prototxt \
-#  --weights ${PRE_MODEL} \
-#  --imdb ${TRAIN_IMDB} \
-#  --iters ${ITERS} \
-#  --cfg experiments/cfgs/faster_rcnn_end2end.yml \
-#  ${EXTRA_ARGS}
+time ./tools/train_net.py --gpu ${GPU_ID} \
+  --solver models/${PT_DIR}/${NET_FULL}/faster_rcnn_end2end/solver.prototxt \
+  --weights ${PRE_MODEL} \
+  --imdb ${TRAIN_IMDB} \
+  --iters ${ITERS} \
+  --cfg experiments/cfgs/faster_rcnn_end2end.yml \
+  ${EXTRA_ARGS}
 
 set +x
-#NET_FINAL=`grep -B 1 "done solving" ${LOG} | grep "Wrote snapshot" | awk '{print $4}'`
+NET_FINAL=`grep -B 1 "done solving" ${LOG} | grep "Wrote snapshot" | awk '{print $4}'`
 #NET_FINAL=output/faster_rcnn_end2end/traffic_sign_train/vgg_cnn_m_1024_faster_rcnn_iter_1000.caffemodel
 #NET_FINAL=output/faster_rcnn_end2end/GTSDB_train/vgg_cnn_m_1024_faster_rcnn_iter_50000.caffemodeldd
-NET_FINAL=output/faster_rcnn_end2end/VOC2007_trainval/resnet50_faster_rcnn_bn_scale_merged_end2end_iter_1000.caffemodel
+#NET_FINAL=output/faster_rcnn_end2end/VOC2007_trainval/resnet50_faster_rcnn_bn_scale_merged_end2end_iter_1000.caffemodel
 set -x
 
 time ./tools/test_net.py --gpu ${GPU_ID} \
