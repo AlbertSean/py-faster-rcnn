@@ -14,6 +14,9 @@ export PYTHONUNBUFFERED="True"
 
 GPU_ID=$1
 NET=$2
+#ResNet101_BN_SCALE_Merged
+#ResNet101_BN_SCALE_Merged_OHEM
+
 NET_lc=${NET,,}
 DATASET=$3
 
@@ -41,7 +44,7 @@ case $DATASET in
     #TEST_IMDB="voc_2007_test"
     TEST_IMDB="VOC2007_test"
     PT_DIR="pascal_voc"
-    ITERS=70000
+    ITERS=1000
     ;;
   coco)
     # This is a very long and slow training schedule
@@ -58,13 +61,40 @@ case $DATASET in
     ;;
 esac
 
+case $NET_lc in
+    resnet50)
+    PRE_MODEL=data/pascal_voc_models/ResNet-50-model.caffemodel
+    NET_FULL='ResNet50_BN_SCALE_Merged'
+    ;;
+    resnet50_ohem)
+    PRE_MODEL=data/pascal_voc_models/ResNet-50-model.caffemodel
+    NET_FULL='ResNet50_BN_SCALE_Merged_OHEM'
+    ;;
+    resnet101)
+    PRE_MODEL=data/pascal_voc_models/ResNet101_BN_SCALE_Merged.caffemodel
+    NET_FULL='ResNet101_BN_SCALE_Merged'
+    ;;
+  resnet101_ohem)
+    PRE_MODEL=data/pascal_voc_models/ResNet101_BN_SCALE_Merged.caffemodel
+    NET_FULL='ResNet101_BN_SCALE_Merged_OHEM'
+    ;;
+   *)
+    echo "Unknown resnet type"
+    exit
+    ;;
+esac
+
+
+
 LOG="experiments/logs/faster_rcnn_end2end_${NET}_${EXTRA_ARGS_SLUG}.txt.`date +'%Y-%m-%d_%H-%M-%S'`"
 exec &> >(tee -a "$LOG")
 echo Logging output to "$LOG"
 
+RESNET101=resnet101_faster_rcnn_bn_scale_merged_end2end_iter_70000.caffemodel
+
 #time ./tools/train_net.py --gpu ${GPU_ID} \
-#  --solver models/${PT_DIR}/${NET}/faster_rcnn_end2end/solver.prototxt \
-#  --weights data/imagenet_models/${NET}.v2.caffemodel \
+#  --solver models/${PT_DIR}/${NET_FULL}/faster_rcnn_end2end/solver.prototxt \
+#  --weights ${PRE_MODEL} \
 #  --imdb ${TRAIN_IMDB} \
 #  --iters ${ITERS} \
 #  --cfg experiments/cfgs/faster_rcnn_end2end.yml \
@@ -72,13 +102,13 @@ echo Logging output to "$LOG"
 
 set +x
 #NET_FINAL=`grep -B 1 "done solving" ${LOG} | grep "Wrote snapshot" | awk '{print $4}'`
-#NET_FINAL=/home/zjk/zhangzhuo/py-faster-rcnn/vgg16_faster_rcnn_iter_1000.caffemodel
 #NET_FINAL=output/faster_rcnn_end2end/traffic_sign_train/vgg_cnn_m_1024_faster_rcnn_iter_1000.caffemodel
-NET_FINAL=output/faster_rcnn_end2end/VOC2007_trainval/vgg_cnn_m_1024_faster_rcnn_iter_1000.caffemodel
+#NET_FINAL=output/faster_rcnn_end2end/GTSDB_train/vgg_cnn_m_1024_faster_rcnn_iter_50000.caffemodeldd
+NET_FINAL=output/faster_rcnn_end2end/VOC2007_trainval/resnet50_faster_rcnn_bn_scale_merged_end2end_iter_1000.caffemodel
 set -x
 
 time ./tools/test_net.py --gpu ${GPU_ID} \
-  --def models/${PT_DIR}/${NET}/faster_rcnn_end2end/test.prototxt \
+  --def models/${PT_DIR}/${NET_FULL}/faster_rcnn_end2end/test.prototxt \
   --net ${NET_FINAL} \
   --imdb ${TEST_IMDB} \
   --cfg experiments/cfgs/faster_rcnn_end2end.yml \

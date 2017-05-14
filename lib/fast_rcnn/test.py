@@ -1,3 +1,4 @@
+# coding:utf-8
 # --------------------------------------------------------
 # Fast R-CNN
 # Copyright (c) 2015 Microsoft
@@ -208,44 +209,44 @@ def vis_detections_old(im, class_name, dets, thresh=0.3):
             plt.show()
 
 def vis_detections(im, class_name, dets, thresh=0.3):
-    """Visual debugging of detections."""
+    """
+    Visual debugging of detections.
+    绘制指定类别的所有矩形框
+    """
     color = edict()
     color.blue = (255,0,0)
+    color.green = (0, 255, 0)
 
-    im = im[:, :, (2, 1, 0)]
+    # 为何要转换顺序？
+    # im = im[:, :, (2, 1, 0)]
 
     im = im.copy()
+
+    winname = 'Faster R-CNN detection result'
+    cv2.namedWindow(winname)
+    cv2.moveWindow(winname, 100, 100)
+
+    found_obj = False
     for i in xrange(np.minimum(10, dets.shape[0])):
         bbox = dets[i, :4]
         score = dets[i, -1]
         if score > thresh:
+            pt1 = (int(bbox[0]), int(bbox[1]))
+            pt2 = (int(bbox[2]), int(bbox[3]))
+            cv2.rectangle(im, pt1, pt2, color.blue, 2)
 
-            cv2.rectangle(
-                    im,
-                    (bbox[0], bbox[1]),
-                    (bbox[2], bbox[3]),
-                    color.blue,
-                    2
-                )
+            text = '{}  {:.3f}'.format(class_name, score)
 
-            title = '{}  {:.3f}'.format(class_name, score)
-            winname = title
-            cv2.namedWindow(winname)
-            cv2.moveWindow(winname, 100, 100)
-            cv2.imshow(winname, im)
-            k = cv2.waitKey(0)
-            if k == 27:
-                cv2.destroyAllWindows()
-            #plt.cla()
-            #plt.imshow(im)
-            #plt.gca().add_patch(
-            #    plt.Rectangle((bbox[0], bbox[1]),
-            #                  bbox[2] - bbox[0],
-            #                  bbox[3] - bbox[1], fill=False,
-            #                  edgecolor='g', linewidth=3)
-            #    )
-            #plt.title('{}  {:.3f}'.format(class_name, score))
-            #plt.show()
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            pt3 = (int(bbox[0]), int(bbox[1])-10)
+            cv2.putText(im,text, pt3, font, 0.4, color.green, 1, cv2.LINE_AA)
+
+            found_obj = True
+    if found_obj:
+        cv2.imshow(winname, im)
+        k = cv2.waitKey(0)
+        if k == 27:
+            cv2.destroyAllWindows()
 
 
 

@@ -10,5 +10,7 @@ data/VOCdevkit2007/local/
 data/faster_rcnn_models/
 data/imagenet_models/
 output/
+data/
 result.txt
 result.log
+tags

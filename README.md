@@ -112,6 +112,30 @@ tmux ls   #查看tmux会话列表
 ```
 最后的两个参数用来指定训练图片后缀。不指定这两个参数的话默认是jpg格式
 
+### ResNet模型下载
+
+#### ResNet101的FasterRCNN
+
+来自[此项目](https://github.com/Eniac-Xie/faster-rcnn-resnet)，提供了在VOC0712上微调所得的caffemodel.
+
+是分类模型在FasterRCNN目标检测网络上微调所得。其中插入了BN层。
+
+faster-rcnn-resnet-101 [百度网盘](http://pan.baidu.com/s/1kUKXgVH) [OneDrive](https://1drv.ms/u/s!AgkRygoHQVTXigHNLWT6gRbTHo2f)
+
+faster-rcnn-resnet-101-ohem [百度网盘](http://pan.baidu.com/s/1o8CtJwI) [OneDrive](https://1drv.ms/u/s!AgkRygoHQVTXigInqoym2V6z4CNA)
+
+
+#### ResNet50的FasterRCNN
+
+未给出finetune得到的caffemodel，只给了prototxt。
+
+见[此处](https://github.com/lixiang-ucas/faster-rcnn-resnet/tree/e84cd369f9ff900adf2a249135a9e8766453d169/models/pascal_voc/ResNet-50)
+
+#### 其他ResNet模型
+
+[resnet网络模型生成器](https://github.com/jay-mahadeokar/pynetbuilder)
+
+如果你的显存比较小，那么考虑用它的resnet50-1by2模型
 
 ### 参考
 
