@@ -3,8 +3,9 @@
 
 ## 快速使用
 ```
-git clone https://github.com/chris_faster_rcnn
-cd chris_faster_rcnn
+git clone https://github.com/zchrissirhcz/py-faster-rcnn
+cd py-faster-rcnn
+git checkout rbg
 git submodule update --init --recursive
 cd caffe-fast-rcnn
 make -j8 && make pycaffe
@@ -22,8 +23,8 @@ make
 cd ~
 
 # 下载frcnn代码
-git clone https://github.com/rbgirshick/py-faster-rcnn chris_faster_rcnn
-cd chris_faster_rcnn
+git clone https://github.com/rbgirshick/py-faster-rcnn
+cd py-faster-rcnn
 
 # 下载frcnn依赖的rbg版caffe，其实有点老的
 git submodule update --init --recursive
@@ -64,18 +65,18 @@ cp $BVLC_CAFFE/src/caffe/layers/cudnn_tanh_layer.cu          $MY_CAFFE/src/caffe
 并且将`caffe-fast-rcnn/src/caffe/layers/cudnn_conv_layer.cu`中的`_v3`找到并删除（一共出现两次，分别在85和103行，`CUDNN_CHECK(cudnnConvolutionBackwardFilter_v3(`去掉`_v3`)。
 
 **修改Makefile.config**
-```
+```bash
 cd caffe-fast-rcnn
 vim Makefile.config
 ```
 
 开启CUDNN:
-```
+```bash
 USE_CUDNN := 1
 ```
 
 提供显卡的60算力支持编译flag，并且去掉不支持的20等算力flag:
-```
+```bash
 CUDA_ARCH := -gencode arch=compute_35,code=sm_35 \
          -gencode arch=compute_50,code=sm_50 \
          -gencode arch=compute_50,code=compute_50 \
@@ -84,67 +85,67 @@ CUDA_ARCH := -gencode arch=compute_35,code=sm_35 \
 ```
 
 开启Caffe的Python接口编译开关：
-```
+```bash
 WITH_PYTHON_LAYER := 1
 ```
 
 添加hdf5头文件搜索路径（ubuntu16.04开始需要）:
-```
+```bash
 # INCLUDE_DIRS路径上，追加/usr/include/hdf5/serial，因为hdf5这个包在ubuntu16.04换成hdf5/seiral这种用法了
 INCLUDE_DIRS := $(PYTHON_INCLUDE) /usr/local/include /usr/include/hdf5/serial
 ```
 
 **修改Makefile**
-```
+```bash
 vim Makefile
 ```
 
 修改hdf5库名字（ubuntu14.04不需要，ubuntu16.04以及更新发行版需要):`hd5_hl` -> `hf5_serial_hl`, `hdf5`->`hdf5_serial`
-```
+```bash
 LIBRARIES += glog gflags protobuf boost_system boost_filesystem m hdf5_serial_hl hdf5_serial
 ```
 
 **修改Python接口(可选，建议使用)**
 希望在使用python layer的时候，把`param_str_`改成`param_str`(去掉尾巴上的下划线)：
-```
+```bash
 vim include/caffe/layers/python_layer.hpp
 ```
 修改第27行：
-```
+```python
 // self_.attr("param_str_") = bp::str( //原有
 self_.attr("param_str") = bp::str(  //修改后的
 ```
 
 **编译caffe**
-```
+```bash
 make -j7
 make pycaffe
 ```
 
 #### 3　准备py-faster-rcnn需要的数据集、caffemodel文件
-```
-cd ~/chris_faster_rcnn/data
+```bash
+cd ~/py-faster-rcnn/data
 ln -sf /opt/data/PASCAL_VOC/VOCdevkit2007 ./   #创建软链接。需要根据你的VOCdevkit实际路径进行替换
 ```
 
 #### 4 编译py-faster-rcnn的lib
 首先清空已有的.so文件，避免因为别人编译产生同名但不兼容的库文件：
-```
-cd ~/chris_faster_rcnn/lib
+```bash
+cd ~/py-faster-rcnn/lib
 find . -name '*.so' -exec rm {} \;
 ```
 
 执行库文件编译：
-```
-make -j7
+```bash
+make -j8
 ```
 
 #### 5 修补py-faster-rcnn代码
 **网络python层使用`param_str`替代`param_str_`(可选，推荐)**
 如果caffe-fast-rcnn中有修改，则这里也要一起修改，保持两者接口名一致。
 首先看看哪里出现了`param_str_`:
-```
-cd ~/chris_faster_rcnn/lib
+```bash
+cd ~/py-faster-rcnn/lib
 grep `param_str_` -Rni .
 ```
 
