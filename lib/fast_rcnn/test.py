@@ -1,4 +1,3 @@
-# coding:utf-8
 # --------------------------------------------------------
 # Fast R-CNN
 # Copyright (c) 2015 Microsoft
@@ -19,7 +18,6 @@ from fast_rcnn.nms_wrapper import nms
 import cPickle
 from utils.blob import im_list_to_blob
 import os
-from easydict import EasyDict as edict
 
 def _get_image_blob(im):
     """Converts an image into a network input.
@@ -128,7 +126,7 @@ def im_detect(net, im, boxes=None):
     # on the unique subset.
     if cfg.DEDUP_BOXES > 0 and not cfg.TEST.HAS_RPN:
         v = np.array([1, 1e3, 1e6, 1e9, 1e12])
-        hashes = np.round(blobs['rois'] * cfg.DEDUP_BOXES).dot(v)
+        hashes = np.round(blobs['rois'] * cfg.DEDUP_BOXES).dot(v).astype(np.int)
         _, index, inv_index = np.unique(hashes, return_index=True,
                                         return_inverse=True)
         blobs['rois'] = blobs['rois'][index, :]
@@ -185,13 +183,9 @@ def im_detect(net, im, boxes=None):
 
     return scores, pred_boxes
 
-def vis_detections_old(im, class_name, dets, thresh=0.3):
+def vis_detections(im, class_name, dets, thresh=0.3):
     """Visual debugging of detections."""
     import matplotlib.pyplot as plt
-    mng = plt.get_current_fig_manager()
-    #mng.full_screen_toggle()
-    # mng.window.state('zoomed')
-    mng.window.showMaximized()
     im = im[:, :, (2, 1, 0)]
     for i in xrange(np.minimum(10, dets.shape[0])):
         bbox = dets[i, :4]
@@ -207,48 +201,6 @@ def vis_detections_old(im, class_name, dets, thresh=0.3):
                 )
             plt.title('{}  {:.3f}'.format(class_name, score))
             plt.show()
-
-def vis_detections(im, class_name, dets, thresh=0.3):
-    """
-    Visual debugging of detections.
-    绘制指定类别的所有矩形框
-    """
-    color = edict()
-    color.blue = (255,0,0)
-    color.green = (0, 255, 0)
-
-    # 为何要转换顺序？
-    # im = im[:, :, (2, 1, 0)]
-
-    im = im.copy()
-
-    winname = 'Faster R-CNN detection result'
-    cv2.namedWindow(winname)
-    cv2.moveWindow(winname, 100, 100)
-
-    found_obj = False
-    for i in xrange(np.minimum(10, dets.shape[0])):
-        bbox = dets[i, :4]
-        score = dets[i, -1]
-        if score > thresh:
-            pt1 = (int(bbox[0]), int(bbox[1]))
-            pt2 = (int(bbox[2]), int(bbox[3]))
-            cv2.rectangle(im, pt1, pt2, color.blue, 2)
-
-            text = '{}  {:.3f}'.format(class_name, score)
-
-            font = cv2.FONT_HERSHEY_SIMPLEX
-            pt3 = (int(bbox[0]), int(bbox[1])-10)
-            cv2.putText(im,text, pt3, font, 0.4, color.green, 1, cv2.LINE_AA)
-
-            found_obj = True
-    if found_obj:
-        cv2.imshow(winname, im)
-        k = cv2.waitKey(0)
-        if k == 27:
-            cv2.destroyAllWindows()
-
-
 
 def apply_nms(all_boxes, thresh):
     """Apply non-maximum suppression to all predicted boxes output by the

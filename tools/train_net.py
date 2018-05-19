@@ -19,7 +19,6 @@ import argparse
 import pprint
 import numpy as np
 import sys
-from datasets.universal import universal
 
 def parse_args():
     """
@@ -50,9 +49,6 @@ def parse_args():
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
-    parser.add_argument('--ext', dest='ext',
-                        help='image file name extension',
-                        default='.jpg', type=str)
 
     if len(sys.argv) == 1:
         parser.print_help()
@@ -61,14 +57,9 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-def combined_roidb(imdb_names, ext):
+def combined_roidb(imdb_names):
     def get_roidb(imdb_name):
-        #imdb = get_imdb(imdb_name)
-        pos = imdb_name.rfind('_')
-        db_name = imdb_name[:pos]
-        split = imdb_name[pos+1:]
-        imdb = universal(db_name=db_name, split=split, ext=ext)
-
+        imdb = get_imdb(imdb_name)
         print 'Loaded dataset `{:s}` for training'.format(imdb.name)
         imdb.set_proposal_method(cfg.TRAIN.PROPOSAL_METHOD)
         print 'Set proposal method: {:s}'.format(cfg.TRAIN.PROPOSAL_METHOD)
@@ -82,11 +73,7 @@ def combined_roidb(imdb_names, ext):
             roidb.extend(r)
         imdb = datasets.imdb.imdb(imdb_names)
     else:
-        # imdb = get_imdb(imdb_names)
-        pos = imdb_names.rfind('_')
-        db_name = imdb_names[:pos]
-        split = imdb_names[pos+1:]
-        imdb = universal(db_name=db_name, split=split, ext=ext)
+        imdb = get_imdb(imdb_names)
     return imdb, roidb
 
 if __name__ == '__main__':
@@ -114,7 +101,7 @@ if __name__ == '__main__':
     caffe.set_mode_gpu()
     caffe.set_device(args.gpu_id)
 
-    imdb, roidb = combined_roidb(args.imdb_name, args.ext)
+    imdb, roidb = combined_roidb(args.imdb_name)
     print '{:d} roidb entries'.format(len(roidb))
 
     output_dir = get_output_dir(imdb)
