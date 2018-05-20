@@ -1,8 +1,8 @@
 // ------------------------------------------------------------------
-// Faster R-CNN
+// Deformable Convolutional Networks
 // Copyright (c) 2015 Microsoft
-// Licensed under The MIT License [see fast-rcnn/LICENSE for details]
-// Written by Shaoqing Ren
+// Licensed under The MIT License
+// Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
 // ------------------------------------------------------------------
 
 #include "gpu_nms.hpp"

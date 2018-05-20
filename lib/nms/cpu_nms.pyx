@@ -1,8 +1,8 @@
 # --------------------------------------------------------
-# Fast R-CNN
+# Deformable Convolutional Networks
 # Copyright (c) 2015 Microsoft
 # Licensed under The MIT License [see LICENSE for details]
-# Written by Ross Girshick
+# Modified from py-faster-rcnn (https://github.com/rbgirshick/py-faster-rcnn)
 # --------------------------------------------------------
 
 import numpy as np
@@ -22,7 +22,7 @@ def cpu_nms(np.ndarray[np.float32_t, ndim=2] dets, np.float thresh):
     cdef np.ndarray[np.float32_t, ndim=1] scores = dets[:, 4]
 
     cdef np.ndarray[np.float32_t, ndim=1] areas = (x2 - x1 + 1) * (y2 - y1 + 1)
-    cdef np.ndarray[np.int_t, ndim=1] order = scores.argsort()[::-1]
+    cdef np.ndarray[np.int_t, ndim=1] order = scores.argsort()[::-1].astype('i')
 
     cdef int ndets = dets.shape[0]
     cdef np.ndarray[np.int_t, ndim=1] suppressed = \

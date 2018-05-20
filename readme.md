@@ -1,18 +1,221 @@
 ## 说明
-本分支fork自[py-faster-rcnn](https://github.com/rbgirshick/py-faster-rcnn)，除了支持新版CUDA(8.0)、CuDNN(6.0)和numpy、protobuf外，仅将Python Layer中使用的`param_str_`改为`param_str`。
+本分支fork自[py-faster-rcnn](https://github.com/rbgirshick/py-faster-rcnn)，并且做了修改使得能在windows下使用；同时也支持新版CUDA(8.0)、CuDNN(6.0)和numpy、protobuf；Python Layer中使用的`param_str_`改为`param_str`。
 
-## 快速使用
+
+## 状态
+
+- lib库的编译
+根据https://github.com/msracver/DeformableConvNets改的。
+
+需要先安装visual studio 2015
+
+注意pycocotools/_maskApi.c中首部使用相对路径，MatlabAPI去掉。
+
+
+- 依赖的caffe:
+使用https://github.com/Microsoft/caffe/tree/1a2be8ecf9ba318d516d79187845e90ac6e73197，
+目前还没有测试过。
+
+
+
+## misc
+如果想自己体验一下本项目的建立过程，具体步骤如下：
+
+### 1. 从github上下载代码
 ```
-git clone https://github.com/zchrissirhcz/py-faster-rcnn
+cd e:/work
+git clone https://github.com/rbgirshick/py-faster-rcnn
 cd py-faster-rcnn
-git checkout rbg
-git submodule update --init --recursive
-cd caffe-fast-rcnn
-make -j8 && make pycaffe
-cd lib
-make
 ```
-以及遵循原版[py-faster-rcnn](https://github.com/rbgirshick/py-faster-rcnn)中对于数据集、预训练模型的说明进行准备工作，然后训练或测试。
+
+### 2. 修改lib目录下的编译脚本
+
+#### `win_setup.py`
+新增`lib/win_setup.py`，内容如下：
+```
+# --------------------------------------------------------
+# Fast R-CNN
+# Copyright (c) 2015 Microsoft
+# Licensed under The MIT License [see LICENSE for details]
+# Written by Ross Girshick
+# --------------------------------------------------------
+
+
+import os
+from os.path import join as pjoin
+from setuptools import setup
+from distutils.extension import Extension
+from Cython.Distutils import build_ext
+import subprocess
+import numpy as np
+
+def find_in_path(name, path):
+    "Find a file in a search path"
+    # Adapted fom
+    # http://code.activestate.com/recipes/52224-find-a-file-given-a-search-path/
+    for dir in path.split(os.pathsep):
+        binpath = pjoin(dir, name)
+        if os.path.exists(binpath):
+            return os.path.abspath(binpath)
+    return None
+
+
+def locate_cuda():
+    """Locate the CUDA environment on the system
+
+    Returns a dict with keys 'home', 'nvcc', 'include', and 'lib64'
+    and values giving the absolute path to each directory.
+
+    Starts by looking for the CUDAHOME env variable. If not found, everything
+    is based on finding 'nvcc' in the PATH.
+    """
+
+    # first check if the CUDAHOME env variable is in use
+    if 'CUDA_PATH' in os.environ:
+        home = os.environ['CUDA_PATH']
+        nvcc = pjoin(home, 'bin', 'nvcc.exe')
+    else:
+        # otherwise, search the PATH for NVCC
+        default_path = pjoin(os.sep, 'usr', 'local', 'cuda', 'bin')
+        nvcc = find_in_path('nvcc.exe', os.environ['PATH'] + os.pathsep + default_path)
+        if nvcc is None:
+            raise EnvironmentError('The nvcc binary could not be '
+                'located in your $PATH. Either add it to your path, or set $CUDA_PATH')
+        home = os.path.dirname(os.path.dirname(nvcc))
+
+    cudaconfig = {'home':home, 'nvcc':nvcc,
+                  'include': pjoin(home, 'include'),
+                  'lib64': pjoin(home, 'lib/x64')}
+    for k, v in cudaconfig.iteritems():
+        if not os.path.exists(v):
+            raise EnvironmentError('The CUDA %s path could not be located in %s' % (k, v))
+
+    return cudaconfig
+CUDA = locate_cuda()
+
+
+# Obtain the numpy include directory.  This logic works across numpy versions.
+try:
+    numpy_include = np.get_include()
+except AttributeError:
+    numpy_include = np.get_numpy_include()
+
+def customize_compiler_for_nvcc(self):
+    """inject deep into distutils to customize how the dispatch
+    to cl/nvcc works.
+
+    If you subclass UnixCCompiler, it's not trivial to get your subclass
+    injected in, and still have the right customizations (i.e.
+    distutils.sysconfig.customize_compiler) run on it. So instead of going
+    the OO route, I have this. Note, it's kindof like a wierd functional
+    subclassing going on."""
+
+    # tell the compiler it can processes .cu
+    #self.src_extensions.append('.cu')
+
+    # save references to the default compiler_so and _comple methods
+    #default_compiler_so = self.spawn 
+    #default_compiler_so = self.rc
+    super = self.compile
+
+    # now redefine the _compile method. This gets executed for each
+    # object but distutils doesn't have the ability to change compilers
+    # based on source extension: we add it.
+    def compile(sources, output_dir=None, macros=None, include_dirs=None, debug=0, extra_preargs=None, extra_postargs=None, depends=None):
+        postfix=os.path.splitext(sources[0])[1]
+        
+        if postfix == '.cu':
+            # use the cuda for .cu files
+            #self.set_executable('compiler_so', CUDA['nvcc'])
+            # use only a subset of the extra_postargs, which are 1-1 translated
+            # from the extra_compile_args in the Extension class
+            postargs = extra_postargs['nvcc']
+        else:
+            postargs = extra_postargs['cl']
+
+
+        return super(sources, output_dir, macros, include_dirs, debug, extra_preargs, postargs, depends)
+        # reset the default compiler_so, which we might have changed for cuda
+        #self.rc = default_compiler_so
+
+    # inject our redefined _compile method into the class
+    self.compile = compile
+
+
+# run the customize_compiler
+class custom_build_ext(build_ext):
+    def build_extensions(self):
+        customize_compiler_for_nvcc(self.compiler)
+        build_ext.build_extensions(self)
+
+
+ext_modules = [
+    # unix _compile: obj, src, ext, cc_args, extra_postargs, pp_opts
+    Extension(
+        "utils.cython_bbox",
+        sources=["utils/bbox.pyx"],
+        #define_macros={'/LD'},
+        #extra_compile_args={'cl': ['/link', '/DLL', '/OUT:cython_bbox.dll']},
+        #extra_compile_args={'cl': ['/LD']},
+        extra_compile_args={'cl': []},
+        include_dirs = [numpy_include]
+    ),
+    Extension(
+        "nms.cpu_nms",
+        sources=["nms/cpu_nms.pyx"],
+        extra_compile_args={'cl': []},
+        include_dirs = [numpy_include]
+    ),
+    #Extension(   # just used to get nms\gpu_nms.obj
+    #    "nms.gpu_nms",
+    #    sources=['nms\\gpu_nms.pyx'],
+    #    language='c++',
+    #    extra_compile_args={'cl': []},
+    #    include_dirs = [numpy_include]
+    #),
+     Extension(
+        'pycocotools._mask',
+        sources=['pycocotools/maskApi.c', 'pycocotools/_mask.pyx'],
+        include_dirs = [numpy_include, 'pycocotools'],
+        extra_compile_args={'cl': []},
+    ),
+]
+
+setup(
+    name='fast_rcnn',
+    ext_modules=ext_modules,
+    # inject our custom trigger
+    cmdclass={'build_ext': custom_build_ext},
+)
+```
+
+然后:
+- 下载并安装VCForPython27.msi
+- 增加环境变量VS90COMNTOOLS, 根据你使用的（也就是你安装过的）visual studio来设定，用来在编译pycocotools时欺骗过编译器，避免stdbool.h找不到的错误。具体设定的例子：
+	使用vs2015，则设定为E:\soft\Microsoft Visual Studio 14.0\Common7\Tools\ （换成你的安装路径，我这里是装在E盘了，通常是在C盘）
+- 再次运行VCForPython27.msi，选择“删除”
+
+然后，在命令行终端中，执行：
+```
+e:
+cd e:/work/py-faster-rcnn/lib
+python win_setup.py install
+```
+
+#### `gpu_nms.cu`和`win_setup_cuda.py`
+
+建立空白文件lib/nms/gpu_nms.cu
+复制lib/nms/nms_kernel.cu到gpu_nms.cu中
+gpu_nms.cu中，删除首部`#inclcude "gpu_nms.hpp"`
+复制lib/nms/gpu_nms.cpp内容到gpu_nms.cu中（追加模式）
+修改gpu_nms.cu的`void _nms()`函数第一个参数类型，从`int*`改成`long*`
+
+
+
+### 参考
+[caffe windows Faster rcnn setup.py 找不到 stdbool.h 解决办法](https://blog.csdn.net/kbdacaa/article/details/78294177)
+
+
 
 ## 详细步骤
 如果想自己体验一下本项目的建立过程，具体步骤如下：
